@@ -4,8 +4,11 @@ from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+CORS(app, origins='*')  # Esto habilitará CORS para todas las rutas de tu aplicación Flask
 
 # Datos de ejemplo
 horoscopos = ['Aries', 'Tauro', 'Géminis', 'Cáncer', 'Leo', 'Virgo', 'Libra', 'Escorpio', 'Sagitario', 'Capricornio', 'Acuario', 'Piscis']
@@ -61,4 +64,4 @@ def kmeans_endpoint():
     return jsonify(resultados)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=4000)
+    app.run(debug=True)
