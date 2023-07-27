@@ -14,43 +14,7 @@ CORS(app, origins='*')  # Esto habilitará CORS para todas las rutas de tu aplic
 
 #Datos de prueba
 # Datos de ejemplo en forma de lista de listas
-datos = [
-    [0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1],
-    [1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1],
-    [1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0],
-    [0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1],
-    [1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1],
-    [1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-    [0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1],
-    [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
-    [0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0],
-    [1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1],
-    [1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0],
-    [1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0],
-    [1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0],
-]
+datos = []
 
 
 @app.route('/kmeans', methods=['GET'])
@@ -60,7 +24,7 @@ def kmeans_endpoint():
     matriz_datos = np.array(datos)
 
     # Configurar el número de clusters k
-    k = 4
+    k = 6
 
     # Crear y entrenar el modelo KMeans
     kmeans = KMeans(n_clusters=k)
@@ -72,17 +36,17 @@ def kmeans_endpoint():
     # Obtener las coordenadas de los centroides
     centroides = kmeans.cluster_centers_
 
-    #Llamando a la funcion para graficar
-    # base64_encoded_original = graficaNormal(matriz_datos, kmeans, centroides, k)
+    # Llamando a la funcion para graficar
+    base64_encoded_original = graficaNormal(matriz_datos, kmeans, centroides, k)
 
-    # #Llamando a la funcion para graficar con incecia
-    # base64_encoded_inercia = graficaInercia(matriz_datos)
+    #Llamando a la funcion para graficar con incecia
+    base64_encoded_inercia = graficaInercia(matriz_datos)
 
-    # #
-    # base64_encoded_silueta = graficaSilueta(matriz_datos)
+    #
+    base64_encoded_silueta = graficaSilueta(matriz_datos)
 
-    # #
-    # base64_encoded_puntos = graficaPuntos()
+    #
+    base64_encoded_puntos = graficaPuntos()
 
     #
     base64_encoded_PCA = graficaPca(matriz_datos, kmeans, etiquetas, k)
@@ -90,14 +54,26 @@ def kmeans_endpoint():
 
     # Devolver los resultados y la gráfica en formato base64
     resultados = {
-        # 'centroidesOriginales': base64_encoded_original,
-        # 'base64_encoded_inercia': base64_encoded_inercia,
-        # 'base64_encoded_silueta': base64_encoded_silueta,
-        # 'base64_encoded_puntos' : base64_encoded_puntos,
+        'centroidesOriginales': base64_encoded_original,
+        'base64_encoded_inercia': base64_encoded_inercia,
+        'base64_encoded_silueta': base64_encoded_silueta,
+        'base64_encoded_puntos' : base64_encoded_puntos,
         'base64_encoded_PCA': base64_encoded_PCA
         
     }
     return jsonify(resultados)
+
+@app.route('/recibir_json', methods=['POST'])
+def recibir_json():
+    dataR = request.json
+    arreglo_datos = [registro for registro in dataR]
+    global datos
+    datos = [convertir_objeto(objeto) for objeto in arreglo_datos]
+    return jsonify({"mensaje": "JSON recibido exitosamente", "arreglo_datos": datos})
+
+# Función para convertir el objeto en el formato deseado
+def convertir_objeto(objeto):
+    return [objeto[f"pregunta{i}"] for i in range(2, 13)]
 
 def graficaNormal(matriz_datos, kmeans, centroides, k):
     #Grafica
@@ -179,7 +155,7 @@ def graficaPuntos():
     matriz_datos = np.array(datos)
 
     # Configurar el número de clusters k
-    k = 4
+    k = 6
 
     # Crear y entrenar el modelo KMeans
     kmeans = KMeans(n_clusters=k)
@@ -238,4 +214,4 @@ def graficaPca(matriz_datos, kmeans, etiquetas, k):
     return base64_encoded_PCA
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
