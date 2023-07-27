@@ -73,16 +73,16 @@ def kmeans_endpoint():
     centroides = kmeans.cluster_centers_
 
     #Llamando a la funcion para graficar
-    base64_encoded_original = graficaNormal(matriz_datos, kmeans, centroides, k)
+    # base64_encoded_original = graficaNormal(matriz_datos, kmeans, centroides, k)
 
-    #Llamando a la funcion para graficar con incecia
-    base64_encoded_inercia = graficaInercia(matriz_datos)
+    # #Llamando a la funcion para graficar con incecia
+    # base64_encoded_inercia = graficaInercia(matriz_datos)
 
-    #
-    base64_encoded_silueta = graficaSilueta(matriz_datos)
+    # #
+    # base64_encoded_silueta = graficaSilueta(matriz_datos)
 
-    #
-    base64_encoded_puntos = graficaPuntos()
+    # #
+    # base64_encoded_puntos = graficaPuntos()
 
     #
     base64_encoded_PCA = graficaPca(matriz_datos, kmeans, etiquetas, k)
@@ -90,10 +90,10 @@ def kmeans_endpoint():
 
     # Devolver los resultados y la gráfica en formato base64
     resultados = {
-        'centroidesOriginales': base64_encoded_original,
-        'base64_encoded_inercia': base64_encoded_inercia,
-        'base64_encoded_silueta': base64_encoded_silueta,
-        'base64_encoded_puntos' : base64_encoded_puntos,
+        # 'centroidesOriginales': base64_encoded_original,
+        # 'base64_encoded_inercia': base64_encoded_inercia,
+        # 'base64_encoded_silueta': base64_encoded_silueta,
+        # 'base64_encoded_puntos' : base64_encoded_puntos,
         'base64_encoded_PCA': base64_encoded_PCA
         
     }
