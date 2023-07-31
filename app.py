@@ -73,42 +73,13 @@ def recibir_json():
 
 # Función para convertir el objeto en el formato deseado
 def convertir_objeto(objeto):
-    return [objeto[f"pregunta{i}"] for i in range(2, 13)]
+    preguntas = []
+    for i in range(2, 13):
+        pregunta_key = f"pregunta{i}"
+        if pregunta_key in objeto:
+            preguntas.append(objeto[pregunta_key])
+    return preguntas
 
-@app.route('/filtrar', methods=['POST'])
-def aplicar_filtros():
-    # Obtener los filtros enviados desde el frontend
-    filtros = request.json
-    signos_seleccionados = filtros.get('signos', [])
-    caracteristicas_seleccionadas = filtros.get('caracteristicas', [])
-
-    # Filtrar los datos basados en los signos y características seleccionadas
-    datos_filtrados = filtrar_datos(signos_seleccionados, caracteristicas_seleccionadas)
-
-    # Aplicar el algoritmo KMeans a los datos filtrados
-    kmeans_resultados = aplicar_kmeans(datos_filtrados)
-
-    # Obtener las gráficas y convertirlas a base64
-    base64_encoded_original = graficaNormal(datos_filtrados, kmeans_resultados['kmeans'], kmeans_resultados['centroides'], kmeans_resultados['k'])
-    base64_encoded_inercia = graficaInercia(datos_filtrados)
-    base64_encoded_silueta = graficaSilueta(datos_filtrados)
-    base64_encoded_puntos = graficaPuntos()
-    base64_encoded_PCA = graficaPca(datos_filtrados, kmeans_resultados['kmeans'], kmeans_resultados['etiquetas'], kmeans_resultados['k'])
-
-    # Devolver los resultados y la gráfica en formato base64
-    resultados = {
-        'centroidesOriginales': base64_encoded_original,
-        'base64_encoded_inercia': base64_encoded_inercia,
-        'base64_encoded_silueta': base64_encoded_silueta,
-        'base64_encoded_puntos': base64_encoded_puntos,
-        'base64_encoded_PCA': base64_encoded_PCA
-    }
-    return jsonify(resultados)
-
-# Función para filtrar los datos basados en los signos y características seleccionadas
-def filtrar_datos(signos_seleccionados, caracteristicas_seleccionadas):
-    datos_filtrados = [registro for registro in datos if registro[0] in signos_seleccionados and all(registro[i] for i in range(1, 12) if f'Pregunta{i-1}' in caracteristicas_seleccionadas)]
-    return np.array(datos_filtrados).reshape(-1,1)
 
 # Función para aplicar el algoritmo KMeans a los datos filtrados
 def aplicar_kmeans(datos_filtrados):
