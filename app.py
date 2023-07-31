@@ -46,10 +46,13 @@ def kmeans_endpoint():
     base64_encoded_silueta = graficaSilueta(matriz_datos)
 
     #
-    base64_encoded_puntos = graficaPuntos()
+    base64_encoded_puntos = graficaPuntos(kmeans)
 
     #
     base64_encoded_PCA = graficaPca(matriz_datos, kmeans, etiquetas, k)
+
+    #
+    base64_encoded_pastel = graficaPastel(etiquetas, k)
 
 
     # Devolver los resultados y la gráfica en formato base64
@@ -58,7 +61,8 @@ def kmeans_endpoint():
         'base64_encoded_inercia': base64_encoded_inercia,
         'base64_encoded_silueta': base64_encoded_silueta,
         'base64_encoded_puntos' : base64_encoded_puntos,
-        'base64_encoded_PCA': base64_encoded_PCA
+        'base64_encoded_PCA': base64_encoded_PCA,
+        'base64_encoded_pastel': base64_encoded_pastel
         
     }
     return jsonify(resultados)
@@ -166,16 +170,16 @@ def graficaSilueta(matriz_datos):
     plt.close()
     return base64_encoded_silueta
 
-def graficaPuntos():
+def graficaPuntos(kmeans):
     # Convertir los datos en una matriz NumPy
     matriz_datos = np.array(datos)
 
     # Configurar el número de clusters k
     k = 6
 
-    # Crear y entrenar el modelo KMeans
-    kmeans = KMeans(n_clusters=k)
-    kmeans.fit(matriz_datos)
+    # # Crear y entrenar el modelo KMeans
+    # kmeans = KMeans(n_clusters=k)
+    # kmeans.fit(matriz_datos)
 
     # Obtener las etiquetas de los clusters
     etiquetas = kmeans.labels_
@@ -228,6 +232,49 @@ def graficaPca(matriz_datos, kmeans, etiquetas, k):
     base64_encoded_PCA = base64.b64encode(buf.read()).decode('utf-8')
     plt.close()
     return base64_encoded_PCA
+
+def graficaPastel(etiquetas, k):
+    # Asignar cada dato a su respectivo grupo
+    datos_con_grupo = []
+    for i, dato in enumerate(datos):
+        grupo = etiquetas[i]
+        datos_con_grupo.append((dato, grupo))
+
+    # Contar la cantidad de datos en cada grupo
+    conteo_por_grupo = [0] * k
+    for dato, grupo in datos_con_grupo:
+        conteo_por_grupo[grupo] += 1
+
+    # Calcular el porcentaje de datos en cada grupo
+    porcentaje_por_grupo = [conteo * 100 / len(datos) for conteo in conteo_por_grupo]
+
+    # Configurar el tamaño de la figura
+    plt.figure(figsize=(8, 8))
+
+    # Generar la gráfica de pastel
+    plt.pie(porcentaje_por_grupo, labels=[f'Grupo {i+1}' for i in range(k)], autopct='%1.1f%%', startangle=140)
+
+    # Agregar título a la gráfica
+    plt.title('Distribución de Datos en los Grupos')
+
+    # Mostrar la gráfica
+    plt.axis('equal')  # Esto garantiza que el gráfico sea un círculo en lugar de una elipse
+    buf = BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    base64_encoded_pastel = base64.b64encode(buf.read()).decode('utf-8')
+    plt.close()
+    return base64_encoded_pastel
+
+
+@app.route('/redes_neuronales_entrenar', methods=['POST'])
+def redes_neuronales():
+    etiquetas = request.json
+    matriz_datos = np.array(datos)
+
+    return jsonify({"mensaje": "JSON recibido exitosamente", "arreglo_datos": datos})
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
