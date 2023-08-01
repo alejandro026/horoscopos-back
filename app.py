@@ -17,14 +17,14 @@ CORS(app, origins='*')  # Esto habilitará CORS para todas las rutas de tu aplic
 datos = []
 
 
-@app.route('/kmeans', methods=['GET'])
-def kmeans_endpoint():
+@app.route('/kmeans/<int:clusterNum>', methods=['GET'])
+def kmeans_endpoint(clusterNum):
     
     # Convertir los datos en una matriz NumPy
     matriz_datos = np.array(datos)
 
     # Configurar el número de clusters k
-    k = 6
+    k = clusterNum
 
     # Crear y entrenar el modelo KMeans
     kmeans = KMeans(n_clusters=k)
@@ -46,7 +46,7 @@ def kmeans_endpoint():
     base64_encoded_silueta = graficaSilueta(matriz_datos)
 
     #
-    base64_encoded_puntos = graficaPuntos(kmeans)
+    base64_encoded_puntos = graficaPuntos(kmeans, k)
 
     #
     base64_encoded_PCA = graficaPca(matriz_datos, kmeans, etiquetas, k)
@@ -70,7 +70,10 @@ def kmeans_endpoint():
 @app.route('/recibir_json', methods=['POST'])
 def recibir_json():
     dataR = request.json
-    arreglo_datos = [registro for registro in dataR]
+    arreglo_datos = [registro for registro in dataR['datosFinales']]
+    #Signos seleccionados
+    global signosSeleccionados  
+    signosSeleccionados= dataR['signosSeleccionados']
     global datos
     datos = [convertir_objeto(objeto) for objeto in arreglo_datos]
     return jsonify({"mensaje": "JSON recibido exitosamente", "arreglo_datos": datos})
@@ -170,12 +173,12 @@ def graficaSilueta(matriz_datos):
     plt.close()
     return base64_encoded_silueta
 
-def graficaPuntos(kmeans):
+def graficaPuntos(kmeans, cluster):
     # Convertir los datos en una matriz NumPy
     matriz_datos = np.array(datos)
 
     # Configurar el número de clusters k
-    k = 6
+    k = cluster
 
     # # Crear y entrenar el modelo KMeans
     # kmeans = KMeans(n_clusters=k)
@@ -235,14 +238,22 @@ def graficaPca(matriz_datos, kmeans, etiquetas, k):
 
 def graficaPastel(etiquetas, k):
     # Asignar cada dato a su respectivo grupo
+
+    # etiquetas_personalizadas = [
+    #     "Aries", "Tauro", "Géminis", "Cáncer", "Leo", "Virgo"
+    # ]
+    etiquetas_personalizadas= signosSeleccionados
+
+    # Asignar cada dato a su respectivo grupo con etiquetas personalizadas
     datos_con_grupo = []
     for i, dato in enumerate(datos):
         grupo = etiquetas[i]
-        datos_con_grupo.append((dato, grupo))
+        signo_zodiaco = etiquetas_personalizadas[grupo]
+        datos_con_grupo.append((dato, grupo, signo_zodiaco))
 
     # Contar la cantidad de datos en cada grupo
     conteo_por_grupo = [0] * k
-    for dato, grupo in datos_con_grupo:
+    for dato, grupo, _ in datos_con_grupo:
         conteo_por_grupo[grupo] += 1
 
     # Calcular el porcentaje de datos en cada grupo
@@ -252,10 +263,10 @@ def graficaPastel(etiquetas, k):
     plt.figure(figsize=(8, 8))
 
     # Generar la gráfica de pastel
-    plt.pie(porcentaje_por_grupo, labels=[f'Grupo {i+1}' for i in range(k)], autopct='%1.1f%%', startangle=140)
+    plt.pie(porcentaje_por_grupo, labels=[f'{etiquetas_personalizadas[i]}' for i in range(k)], autopct='%1.1f%%', startangle=140)
 
-    # Agregar título a la gráfica
-    plt.title('Distribución de Datos en los Grupos')
+    # Agregar título a la gráfica con un salto de línea
+    plt.title('Distribución de Datos en los Grupos\n\n')
 
     # Mostrar la gráfica
     plt.axis('equal')  # Esto garantiza que el gráfico sea un círculo en lugar de una elipse
