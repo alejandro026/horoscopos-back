@@ -1,9 +1,13 @@
 from flask import Flask, jsonify, request
 import numpy as np
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_samples, silhouette_score
-import matplotlib.pyplot as plt
+
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt
+
 import base64
 from io import BytesIO
 from flask_cors import CORS
@@ -277,13 +281,101 @@ def graficaPastel(etiquetas, k):
     plt.close()
     return base64_encoded_pastel
 
+def grafica_pastel_agg(etiquetas, k):
+    # Contar la cantidad de datos en cada grupo
+    conteo_por_grupo = np.bincount(etiquetas)
 
-@app.route('/redes_neuronales_entrenar', methods=['POST'])
-def redes_neuronales():
-    etiquetas = request.json
+    # Calcular el porcentaje de datos en cada grupo
+    porcentaje_por_grupo = conteo_por_grupo * 100 / len(datos)
+
+    # Configurar el tamaño de la figura
+    plt.figure(figsize=(8, 8))
+
+    # Generar la gráfica de pastel
+    plt.pie(porcentaje_por_grupo, labels=[f'Grupo {i}' for i in range(k)], autopct='%1.1f%%', startangle=140)
+
+    # Agregar título a la gráfica con un salto de línea
+    plt.title('Distribución de Datos en los Grupos (Agglomerative Clustering)\n\n')
+
+    # Mostrar la gráfica
+    plt.axis('equal')  # Esto garantiza que el gráfico sea un círculo en lugar de una elipse
+    buf = BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    base64_encoded_pastel_agg = base64.b64encode(buf.read()).decode('utf-8')
+    plt.close()
+    return base64_encoded_pastel_agg
+
+def grafica_pca(matriz_datos, etiquetas, k):
+    # Reducir la dimensionalidad de los datos a 2D mediante PCA
+    pca = PCA(n_components=2)
+    datos_pca = pca.fit_transform(matriz_datos)
+
+    # Crear un diccionario para almacenar los datos de cada cluster por separado
+    datos_por_cluster = {i: [] for i in range(k)}
+    for i, dato in enumerate(datos_pca):
+        grupo = etiquetas[i]
+        datos_por_cluster[grupo].append(dato)
+
+    # Configurar el tamaño de la figura
+    plt.figure(figsize=(8, 8))
+
+    # Generar el gráfico de dispersión para cada cluster
+    for i in range(k):
+        datos_cluster = np.array(datos_por_cluster[i])
+        plt.scatter(datos_cluster[:, 0], datos_cluster[:, 1], label=f'Cluster {i+1}')
+
+    # Agregar etiquetas para los clusters en la leyenda
+    plt.legend()
+
+    # Agregar título al gráfico
+    plt.title('Gráfico PCA de los Clusters (Agglomerative Clustering)\n\n')
+
+    buf = BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    base64_encoded_pca_agg = base64.b64encode(buf.read()).decode('utf-8')
+    plt.close()
+    return base64_encoded_pca_agg
+
+@app.route('/agglomerativeClustering/<int:clusterNum>', methods=['GET'])
+def agglomerativeClustering(clusterNum):
+    # Convertir los datos en una matriz NumPy
     matriz_datos = np.array(datos)
 
-    return jsonify({"mensaje": "JSON recibido exitosamente", "arreglo_datos": datos})
+    # Configurar el número de clusters k (ajustar según necesites)
+    k = clusterNum
+
+    # Crear y entrenar el modelo Agglomerative Clustering
+    agglomerative = AgglomerativeClustering(n_clusters=k)
+    etiquetas = agglomerative.fit_predict(matriz_datos)
+    
+    #Llamando a la funcion para graficar con incecia
+    # base64_encoded_inercia = graficaInercia(matriz_datos)
+
+    #
+    # base64_encoded_silueta = graficaSilueta(matriz_datos)
+
+    #
+    # base64_encoded_puntos = graficaPuntos(agglomerative, k)
+
+    #
+    base64_encoded_PCA = grafica_pca(matriz_datos, etiquetas, k)
+
+    #
+    base64_encoded_pastel = grafica_pastel_agg(etiquetas, k)
+
+
+    # Devolver los resultados y la gráfica en formato base64
+    resultados = {
+        # 'base64_encoded_inercia': base64_encoded_inercia,
+        # 'base64_encoded_silueta': base64_encoded_silueta,
+        # 'base64_encoded_puntos' : base64_encoded_puntos,
+        'base64_encoded_PCA': base64_encoded_PCA,
+        'base64_encoded_pastel': base64_encoded_pastel
+        
+    }
+    return jsonify(resultados)
 
 
 
